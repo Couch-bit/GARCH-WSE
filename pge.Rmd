@@ -1,0 +1,303 @@
+---
+title: "Modele GARCH PGE"
+author: "Cezary Moskal"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    code_folding: "hide"
+    css: "style.css"
+---
+
+```{r Setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(warning = FALSE)
+library(rugarch)
+library(tidyverse)
+library(tseries)
+library(WeightedPortTest)
+
+source('backtesting.r')
+set.seed(123)
+```
+
+
+```{r}
+data <- read.csv('data/pge.csv')
+data <- tail(data, 2001)
+colnames(data) <- c('date', 'open', 'high', 'low', 'close', 'volume')
+data['return'] = data$close / lag(data$close) - 1
+data['log_return'] = log(data$return + 1)
+data = drop_na(data)
+```
+
+```{r}
+log_return_series <- data$log_return
+train_data <- log_return_series[1:1000]
+```
+
+```{r}
+adf.test(train_data)
+kpss.test(train_data, null = 'Level')
+```
+
+```{r}
+best_bic <- Inf
+best_model <- NULL
+for (i in 0:3) {
+  for(j in 0:3) {
+    model <- arima(train_data, order = c(i, 0, j), method = 'ML')
+    npar <- length(model$coef) + 1
+    nstar <- 
+      length(model$residuals) - model$arma[6] - model$arma[7] * model$arma[5]
+    bic <- model$aic + npar * (log(nstar) - 2)
+    if (bic < best_bic) {
+      best_bic <- bic
+      best_model <- model
+    }
+  }
+}
+best_model
+```
+
+```{r}
+res <- residuals(best_model)
+Box.test(res, type = 'Ljung-Box',
+         lag = trunc((length(train_data) - 1)^(1 / 3)),
+         fitdf = 1)
+Box.test(res^2, type = 'Ljung-Box',
+         lag = trunc((length(train_data) - 1)^(1 / 3)))
+```
+
+```{r}
+spec <- ugarchspec(mean.model = list(armaOrder = c(1, 0),
+                                     include.mean = TRUE,
+                                     archm = FALSE, 
+                                     archpow = 1, arfima = FALSE,
+                                     external.regressors = NULL,
+                                     archex = FALSE))
+fit <- ugarchfit(spec = spec, data = train_data, solver = 'hybrid')
+res <- as.numeric(residuals(fit, standardize = TRUE))
+Box.test(res, type = 'Ljung-Box',
+         lag = trunc((length(train_data) - 1)^(1 / 3)))
+Weighted.LM.test(res, rep(1, length(res)),
+                 type = 'correlation',
+                 lag = trunc((length(train_data) - 1)^(1 / 3)),
+                 fitdf = 2,
+                 weighted = FALSE)
+shapiro.test(res)
+spec <- ugarchspec(mean.model = list(armaOrder = c(1, 0),
+                                     include.mean = TRUE,
+                                     archm = FALSE, 
+                                     archpow = 1, arfima = FALSE,
+                                     external.regressors = NULL,
+                                     archex = FALSE),
+                   distribution.model = 'sstd')
+fit <- ugarchfit(spec = spec, data = train_data, solver = 'hybrid')
+res <- as.numeric(residuals(fit, standardize = TRUE))
+Box.test(res, type = 'Ljung-Box',
+         lag = trunc((length(train_data) - 1)^(1 / 3)))
+Weighted.LM.test(res, rep(1, length(res)),
+                 type = 'correlation',
+                 lag = trunc((length(train_data) - 1)^(1 / 3)),
+                 fitdf = 2,
+                 weighted = FALSE)
+```
+
+```{r}
+spec <- ugarchspec(variance.model = list(model = 'eGARCH',
+                                         garchOrder = c(1, 1, 1),
+                                         submodel = NULL,
+                                         external.regressors = NULL,
+                                         variance.targeting = FALSE),
+                   mean.model = list(armaOrder = c(1, 0),
+                                     include.mean = TRUE,
+                                     archm = FALSE, 
+                                     archpow = 1, arfima = FALSE,
+                                     external.regressors = NULL,
+                                     archex = FALSE))
+fit <- ugarchfit(spec = spec, data = train_data, solver = 'hybrid')
+res <- as.numeric(residuals(fit, standardize = TRUE))
+Box.test(res, type = 'Ljung-Box',
+         lag = trunc((length(train_data) - 1)^(1 / 3)))
+Weighted.LM.test(res, rep(1, length(res)),
+                 type = 'correlation',
+                 lag = trunc((length(train_data) - 1)^(1 / 3)),
+                 fitdf = 2,
+                 weighted = FALSE)
+shapiro.test(res)
+spec <- ugarchspec(variance.model = list(model = 'eGARCH',
+                                         garchOrder = c(1, 1, 1),
+                                         submodel = NULL,
+                                         external.regressors = NULL,
+                                         variance.targeting = FALSE),
+                   mean.model = list(armaOrder = c(1, 0),
+                                     include.mean = TRUE,
+                                     archm = FALSE, 
+                                     archpow = 1, arfima = FALSE,
+                                     external.regressors = NULL,
+                                     archex = FALSE),
+                   distribution.model = 'sstd')
+fit <- ugarchfit(spec = spec, data = train_data, solver = 'hybrid')
+res <- as.numeric(residuals(fit, standardize = TRUE))
+Box.test(res, type = 'Ljung-Box',
+         lag = trunc((length(train_data) - 1)^(1 / 3)))
+Weighted.LM.test(res, rep(1, length(res)),
+                 type = 'correlation',
+                 lag = trunc((length(train_data) - 1)^(1 / 3)),
+                 fitdf = 2,
+                 weighted = FALSE)
+```
+
+```{r}
+spec <- ugarchspec(variance.model = list(model = 'gjrGARCH',
+                                         garchOrder = c(1, 1, 1),
+                                         submodel = NULL,
+                                         external.regressors = NULL,
+                                         variance.targeting = FALSE),
+                   mean.model = list(armaOrder = c(1, 0),
+                                     include.mean = TRUE,
+                                     archm = FALSE, 
+                                     archpow = 1, arfima = FALSE,
+                                     external.regressors = NULL,
+                                     archex = FALSE))
+fit <- ugarchfit(spec = spec, data = train_data, solver = 'hybrid')
+res <- as.numeric(residuals(fit, standardize = TRUE))
+Box.test(res, type = 'Ljung-Box',
+         lag = trunc((length(train_data) - 1)^(1 / 3)))
+Weighted.LM.test(res, rep(1, length(res)),
+                 type = 'correlation',
+                 lag = trunc((length(train_data) - 1)^(1 / 3)),
+                 fitdf = 2,
+                 weighted = FALSE)
+shapiro.test(res)
+spec <- ugarchspec(variance.model = list(model = 'gjrGARCH',
+                                         garchOrder = c(1, 1, 1),
+                                         submodel = NULL,
+                                         external.regressors = NULL,
+                                         variance.targeting = FALSE),
+                   mean.model = list(armaOrder = c(1, 0),
+                                     include.mean = TRUE,
+                                     archm = FALSE, 
+                                     archpow = 1, arfima = FALSE,
+                                     external.regressors = NULL,
+                                     archex = FALSE),
+                   distribution.model = 'sstd')
+fit <- ugarchfit(spec = spec, data = train_data, solver = 'hybrid')
+res <- as.numeric(residuals(fit, standardize = TRUE))
+Box.test(res, type = 'Ljung-Box',
+         lag = trunc((length(train_data) - 1)^(1 / 3)))
+Weighted.LM.test(res, rep(1, length(res)),
+                 type = 'correlation',
+                 lag = trunc((length(train_data) - 1)^(1 / 3)),
+                 fitdf = 2,
+                 weighted = FALSE)
+```
+
+```{r}
+spec <- ugarchspec(variance.model = list(model = 'iGARCH',
+                                         garchOrder = c(1, 1),
+                                         submodel = NULL,
+                                         external.regressors = NULL,
+                                         variance.targeting = FALSE),
+                   mean.model = list(armaOrder = c(0, 0),
+                                     include.mean = TRUE,
+                                     archm = FALSE, 
+                                     archpow = 1, arfima = FALSE,
+                                     external.regressors = NULL,
+                                     archex = FALSE))
+fit <- ugarchfit(spec = spec, data = train_data, solver = 'hybrid')
+res <- as.numeric(residuals(fit, standardize = TRUE))
+Box.test(res, type = 'Ljung-Box',
+         lag = trunc((length(train_data) - 1)^(1 / 3)))
+Weighted.LM.test(res, rep(1, length(res)),
+                 type = 'correlation',
+                 lag = trunc((length(train_data) - 1)^(1 / 3)),
+                 fitdf = 2,
+                 weighted = FALSE)
+shapiro.test(res)
+spec <- ugarchspec(variance.model = list(model = 'iGARCH',
+                                         garchOrder = c(1, 1),
+                                         submodel = NULL,
+                                         external.regressors = NULL,
+                                         variance.targeting = FALSE),
+                   mean.model = list(armaOrder = c(0, 0),
+                                     include.mean = TRUE,
+                                     archm = FALSE, 
+                                     archpow = 1, arfima = FALSE,
+                                     external.regressors = NULL,
+                                     archex = FALSE),
+                   distribution.model = 'sstd')
+fit <- ugarchfit(spec = spec, data = train_data, solver = 'hybrid')
+res <- as.numeric(residuals(fit, standardize = TRUE))
+Box.test(res, type = 'Ljung-Box',
+         lag = trunc((length(train_data) - 1)^(1 / 3)))
+Weighted.LM.test(res, rep(1, length(res)),
+                 type = 'correlation',
+                 lag = trunc((length(train_data) - 1)^(1 / 3)),
+                 fitdf = 2,
+                 weighted = FALSE)
+```
+
+```{r}
+result_frame <- data.frame(matrix(ncol = 9, nrow = 0))
+colnames(result_frame) <- c('dist', 'sample', 'model',
+                            'prop_fails_hist','prop_fails_cond',
+                            'pof_hist', 'pof_cond',
+                            'tbfi_hist', 'tbfi_cond')
+for (dist in c('norm', 'sstd')) {
+  for (sample in c(500, 750, 1000)) {
+    for (model in c('sGARCH', 'eGARCH', 'gjrGARCH', 'iGARCH')) {
+      if (model %in% c('sGARCH', 'iGARCH')) {
+        GarchOrder <- c(1, 1)
+      } else {
+        GarchOrder <- c(1, 1, 1)
+      }
+      spec <- ugarchspec(variance.model = list(model = model,
+                                         garchOrder = GarchOrder,
+                                         submodel = NULL,
+                                         external.regressors = NULL,
+                                         variance.targeting = FALSE),
+                         mean.model = list(armaOrder = c(1, 0),
+                                     include.mean = TRUE,
+                                     archm = FALSE, 
+                                     archpow = 1, arfima = FALSE,
+                                     external.regressors = NULL,
+                                     archex = FALSE),
+                         distribution.model = dist)
+      failures_historical <- numeric(1000)
+      failures_conditional <- numeric(1000)
+      for (i in 1:1000) {
+        fit <- ugarchfit(spec = spec,
+                         data = log_return_series[
+                           (1000 - sample + i):(999 + i)
+                         ],
+                         solver = 'hybrid')
+        res <- as.numeric(residuals(fit, standardize = TRUE))
+        forecast <- ugarchforecast(fit, n.ahead = 1)
+        cstd <- sigma(forecast)
+        value <- fitted(forecast)
+        failures_historical[i] <- 
+          log_return_series[1000 + i] - value < quantile(res, 0.05) * cstd
+        failures_conditional[i] <- 
+          log_return_series[1000 + i] < quantile(forecast, 0.05)
+      }
+      
+      result_frame[nrow(result_frame) + 1, ] <- c(
+        dist,
+        sample,
+        model,
+        sum(failures_historical) / 1000,
+        sum(failures_conditional) / 1000,
+        pof.test(failures_historical, 0.05),
+        pof.test(failures_conditional, 0.05),
+        tbfi.test(failures_historical, 0.05),
+        tbfi.test(failures_conditional, 0.05)
+      )
+    }
+  }
+}
+```
+
+```{r}
+write.csv(result_frame, 'results/pge.csv')
+```
