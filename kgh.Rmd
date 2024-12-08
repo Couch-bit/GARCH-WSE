@@ -1,5 +1,5 @@
 ---
-title: "Modele GARCH PKN"
+title: "Modele GARCH KGH"
 author: "Cezary Moskal"
 date: "`r Sys.Date()`"
 output: 
@@ -22,7 +22,7 @@ set.seed(123)
 
 
 ```{r}
-data <- read.csv('data/pkn.csv')
+data <- read.csv('data/kgh.csv')
 data <- tail(data, 2001)
 colnames(data) <- c('date', 'open', 'high', 'low', 'close', 'volume')
 data['return'] = data$close / lag(data$close) - 1
@@ -262,14 +262,13 @@ for (dist in c('norm', 'sstd')) {
                                      external.regressors = NULL,
                                      archex = FALSE),
                          distribution.model = dist)
-      failures_historical <- numeric(10)
-      failures_conditional <- numeric(10)
-      for (i in 1:10) {
+      failures_historical <- numeric(1000)
+      failures_conditional <- numeric(1000)
+      for (i in 1:1000) {
         fit <- ugarchfit(spec = spec,
                          data = log_return_series[
                            (1000 - sample + i):(999 + i)
                          ],
-                         solver.control = list(tol = 1e-12),
                          solver = 'hybrid')
         res <- as.numeric(residuals(fit, standardize = TRUE))
         forecast <- ugarchforecast(fit, n.ahead = 1)
@@ -285,8 +284,8 @@ for (dist in c('norm', 'sstd')) {
         dist,
         sample,
         model,
-        sum(failures_historical) / 10,
-        sum(failures_conditional) / 10,
+        sum(failures_historical) / 1000,
+        sum(failures_conditional) / 1000,
         pof.test(failures_historical, 0.05),
         pof.test(failures_conditional, 0.05),
         tbfi.test(failures_historical, 0.05),
@@ -298,5 +297,5 @@ for (dist in c('norm', 'sstd')) {
 ```
 
 ```{r}
-write.csv(result_frame, 'results/pkn.csv')
+write.csv(result_frame, 'results/kgh.csv')
 ```

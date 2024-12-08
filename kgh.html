@@ -13,7 +13,7 @@
 
 <meta name="date" content="2024-12-08" />
 
-<title>Modele GARCH CDR</title>
+<title>Modele GARCH KGH</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -439,14 +439,14 @@ display: none;
 
 
 
-<h1 class="title toc-ignore">Modele GARCH CDR</h1>
+<h1 class="title toc-ignore">Modele GARCH KGH</h1>
 <h4 class="author">Cezary Moskal</h4>
 <h4 class="date">2024-12-08</h4>
 
 </div>
 
 
-<pre class="r"><code>data &lt;- read.csv(&#39;data/cdr.csv&#39;)
+<pre class="r"><code>data &lt;- read.csv(&#39;data/kgh.csv&#39;)
 data &lt;- tail(data, 2001)
 colnames(data) &lt;- c(&#39;date&#39;, &#39;open&#39;, &#39;high&#39;, &#39;low&#39;, &#39;close&#39;, &#39;volume&#39;)
 data[&#39;return&#39;] = data$close / lag(data$close) - 1
@@ -459,14 +459,14 @@ train_data &lt;- log_return_series[1:1000]</code></pre>
 ##  Augmented Dickey-Fuller Test
 ## 
 ## data:  train_data
-## Dickey-Fuller = -10.111, Lag order = 9, p-value = 0.01
+## Dickey-Fuller = -8.5553, Lag order = 9, p-value = 0.01
 ## alternative hypothesis: stationary</code></pre>
 <pre class="r"><code>kpss.test(train_data, null = &#39;Level&#39;)</code></pre>
 <pre><code>## 
 ##  KPSS Test for Level Stationarity
 ## 
 ## data:  train_data
-## KPSS Level = 0.064173, Truncation lag parameter = 7, p-value = 0.1</code></pre>
+## KPSS Level = 0.18929, Truncation lag parameter = 7, p-value = 0.1</code></pre>
 <pre class="r"><code>best_bic &lt;- Inf
 best_model &lt;- NULL
 for (i in 0:3) {
@@ -489,24 +489,24 @@ best_model</code></pre>
 ## 
 ## Coefficients:
 ##       intercept
-##          0.0021
-## s.e.     0.0008
+##           7e-04
+## s.e.      8e-04
 ## 
-## sigma^2 estimated as 0.0006981:  log likelihood = 2214.63,  aic = -4425.25</code></pre>
+## sigma^2 estimated as 0.0005615:  log likelihood = 2323.47,  aic = -4642.94</code></pre>
 <pre class="r"><code>Box.test(train_data, type = &#39;Ljung-Box&#39;,
          lag = trunc((length(train_data) - 1)^(1 / 3)))</code></pre>
 <pre><code>## 
 ##  Box-Ljung test
 ## 
 ## data:  train_data
-## X-squared = 16.481, df = 9, p-value = 0.05749</code></pre>
+## X-squared = 9.3596, df = 9, p-value = 0.4048</code></pre>
 <pre class="r"><code>Box.test(train_data^2, type = &#39;Ljung-Box&#39;,
          lag = trunc((length(train_data) - 1)^(1 / 3)))</code></pre>
 <pre><code>## 
 ##  Box-Ljung test
 ## 
 ## data:  train_data^2
-## X-squared = 142.06, df = 9, p-value &lt; 2.2e-16</code></pre>
+## X-squared = 232.44, df = 9, p-value &lt; 2.2e-16</code></pre>
 <pre class="r"><code>spec &lt;- ugarchspec(mean.model = list(armaOrder = c(0, 0),
                                      include.mean = TRUE,
                                      archm = FALSE, 
@@ -521,7 +521,7 @@ Box.test(res, type = &#39;Ljung-Box&#39;,
 ##  Box-Ljung test
 ## 
 ## data:  res
-## X-squared = 13.856, df = 9, p-value = 0.1275</code></pre>
+## X-squared = 8.5768, df = 9, p-value = 0.4772</code></pre>
 <pre class="r"><code>Weighted.LM.test(res, rep(1, length(res)),
                  type = &#39;correlation&#39;,
                  lag = trunc((length(train_data) - 1)^(1 / 3)),
@@ -531,14 +531,14 @@ Box.test(res, type = &#39;Ljung-Box&#39;,
 ##  Li-Mak test on autocorrelations (Chi-Squared Approximation)
 ## 
 ## data:  res
-## X-squared on Squared Residuals for fitted ARCH process = 2.889, Degrees
-## of Freedom = 7, p-value = 0.8951</code></pre>
+## X-squared on Squared Residuals for fitted ARCH process = 13.014,
+## Degrees of Freedom = 7, p-value = 0.07177</code></pre>
 <pre class="r"><code>shapiro.test(res)</code></pre>
 <pre><code>## 
 ##  Shapiro-Wilk normality test
 ## 
 ## data:  res
-## W = 0.97976, p-value = 1.42e-10</code></pre>
+## W = 0.9928, p-value = 8.906e-05</code></pre>
 <pre class="r"><code>spec &lt;- ugarchspec(mean.model = list(armaOrder = c(0, 0),
                                      include.mean = TRUE,
                                      archm = FALSE, 
@@ -554,7 +554,7 @@ Box.test(res, type = &#39;Ljung-Box&#39;,
 ##  Box-Ljung test
 ## 
 ## data:  res
-## X-squared = 13.359, df = 9, p-value = 0.147</code></pre>
+## X-squared = 8.4707, df = 9, p-value = 0.4875</code></pre>
 <pre class="r"><code>Weighted.LM.test(res, rep(1, length(res)),
                  type = &#39;correlation&#39;,
                  lag = trunc((length(train_data) - 1)^(1 / 3)),
@@ -564,8 +564,8 @@ Box.test(res, type = &#39;Ljung-Box&#39;,
 ##  Li-Mak test on autocorrelations (Chi-Squared Approximation)
 ## 
 ## data:  res
-## X-squared on Squared Residuals for fitted ARCH process = 3.6159,
-## Degrees of Freedom = 7, p-value = 0.8228</code></pre>
+## X-squared on Squared Residuals for fitted ARCH process = 13.996,
+## Degrees of Freedom = 7, p-value = 0.05126</code></pre>
 <pre class="r"><code>spec &lt;- ugarchspec(variance.model = list(model = &#39;eGARCH&#39;,
                                          garchOrder = c(1, 1, 1),
                                          submodel = NULL,
@@ -585,7 +585,7 @@ Box.test(res, type = &#39;Ljung-Box&#39;,
 ##  Box-Ljung test
 ## 
 ## data:  res
-## X-squared = 13.871, df = 9, p-value = 0.127</code></pre>
+## X-squared = 9.3548, df = 9, p-value = 0.4052</code></pre>
 <pre class="r"><code>Weighted.LM.test(res, rep(1, length(res)),
                  type = &#39;correlation&#39;,
                  lag = trunc((length(train_data) - 1)^(1 / 3)),
@@ -595,14 +595,14 @@ Box.test(res, type = &#39;Ljung-Box&#39;,
 ##  Li-Mak test on autocorrelations (Chi-Squared Approximation)
 ## 
 ## data:  res
-## X-squared on Squared Residuals for fitted ARCH process = 2.3227,
-## Degrees of Freedom = 7, p-value = 0.9398</code></pre>
+## X-squared on Squared Residuals for fitted ARCH process = 14.798,
+## Degrees of Freedom = 7, p-value = 0.03868</code></pre>
 <pre class="r"><code>shapiro.test(res)</code></pre>
 <pre><code>## 
 ##  Shapiro-Wilk normality test
 ## 
 ## data:  res
-## W = 0.98145, p-value = 5.635e-10</code></pre>
+## W = 0.99385, p-value = 0.000394</code></pre>
 <pre class="r"><code>spec &lt;- ugarchspec(variance.model = list(model = &#39;eGARCH&#39;,
                                          garchOrder = c(1, 1, 1),
                                          submodel = NULL,
@@ -623,7 +623,7 @@ Box.test(res, type = &#39;Ljung-Box&#39;,
 ##  Box-Ljung test
 ## 
 ## data:  res
-## X-squared = 13.598, df = 9, p-value = 0.1374</code></pre>
+## X-squared = 9.9511, df = 9, p-value = 0.3545</code></pre>
 <pre class="r"><code>Weighted.LM.test(res, rep(1, length(res)),
                  type = &#39;correlation&#39;,
                  lag = trunc((length(train_data) - 1)^(1 / 3)),
@@ -633,8 +633,8 @@ Box.test(res, type = &#39;Ljung-Box&#39;,
 ##  Li-Mak test on autocorrelations (Chi-Squared Approximation)
 ## 
 ## data:  res
-## X-squared on Squared Residuals for fitted ARCH process = 2.8933,
-## Degrees of Freedom = 7, p-value = 0.8947</code></pre>
+## X-squared on Squared Residuals for fitted ARCH process = 12.906,
+## Degrees of Freedom = 7, p-value = 0.07444</code></pre>
 <pre class="r"><code>spec &lt;- ugarchspec(variance.model = list(model = &#39;gjrGARCH&#39;,
                                          garchOrder = c(1, 1, 1),
                                          submodel = NULL,
@@ -654,7 +654,7 @@ Box.test(res, type = &#39;Ljung-Box&#39;,
 ##  Box-Ljung test
 ## 
 ## data:  res
-## X-squared = 13.826, df = 9, p-value = 0.1287</code></pre>
+## X-squared = 9.1772, df = 9, p-value = 0.4211</code></pre>
 <pre class="r"><code>Weighted.LM.test(res, rep(1, length(res)),
                  type = &#39;correlation&#39;,
                  lag = trunc((length(train_data) - 1)^(1 / 3)),
@@ -664,14 +664,14 @@ Box.test(res, type = &#39;Ljung-Box&#39;,
 ##  Li-Mak test on autocorrelations (Chi-Squared Approximation)
 ## 
 ## data:  res
-## X-squared on Squared Residuals for fitted ARCH process = 1.9692,
-## Degrees of Freedom = 7, p-value = 0.9615</code></pre>
+## X-squared on Squared Residuals for fitted ARCH process = 10.479,
+## Degrees of Freedom = 7, p-value = 0.163</code></pre>
 <pre class="r"><code>shapiro.test(res)</code></pre>
 <pre><code>## 
 ##  Shapiro-Wilk normality test
 ## 
 ## data:  res
-## W = 0.98104, p-value = 4.005e-10</code></pre>
+## W = 0.99318, p-value = 0.0001511</code></pre>
 <pre class="r"><code>spec &lt;- ugarchspec(variance.model = list(model = &#39;gjrGARCH&#39;,
                                          garchOrder = c(1, 1, 1),
                                          submodel = NULL,
@@ -692,7 +692,7 @@ Box.test(res, type = &#39;Ljung-Box&#39;,
 ##  Box-Ljung test
 ## 
 ## data:  res
-## X-squared = 13.322, df = 9, p-value = 0.1486</code></pre>
+## X-squared = 9.6198, df = 9, p-value = 0.3821</code></pre>
 <pre class="r"><code>Weighted.LM.test(res, rep(1, length(res)),
                  type = &#39;correlation&#39;,
                  lag = trunc((length(train_data) - 1)^(1 / 3)),
@@ -702,8 +702,8 @@ Box.test(res, type = &#39;Ljung-Box&#39;,
 ##  Li-Mak test on autocorrelations (Chi-Squared Approximation)
 ## 
 ## data:  res
-## X-squared on Squared Residuals for fitted ARCH process = 2.9494,
-## Degrees of Freedom = 7, p-value = 0.8896</code></pre>
+## X-squared on Squared Residuals for fitted ARCH process = 9.3549,
+## Degrees of Freedom = 7, p-value = 0.2282</code></pre>
 <pre class="r"><code>spec &lt;- ugarchspec(variance.model = list(model = &#39;iGARCH&#39;,
                                          garchOrder = c(1, 1),
                                          submodel = NULL,
@@ -723,7 +723,7 @@ Box.test(res, type = &#39;Ljung-Box&#39;,
 ##  Box-Ljung test
 ## 
 ## data:  res
-## X-squared = 12.944, df = 9, p-value = 0.1652</code></pre>
+## X-squared = 8.7144, df = 9, p-value = 0.464</code></pre>
 <pre class="r"><code>Weighted.LM.test(res, rep(1, length(res)),
                  type = &#39;correlation&#39;,
                  lag = trunc((length(train_data) - 1)^(1 / 3)),
@@ -733,14 +733,14 @@ Box.test(res, type = &#39;Ljung-Box&#39;,
 ##  Li-Mak test on autocorrelations (Chi-Squared Approximation)
 ## 
 ## data:  res
-## X-squared on Squared Residuals for fitted ARCH process = 4.4835,
-## Degrees of Freedom = 7, p-value = 0.7227</code></pre>
+## X-squared on Squared Residuals for fitted ARCH process = 11.494,
+## Degrees of Freedom = 7, p-value = 0.1185</code></pre>
 <pre class="r"><code>shapiro.test(res)</code></pre>
 <pre><code>## 
 ##  Shapiro-Wilk normality test
 ## 
 ## data:  res
-## W = 0.97628, p-value = 1.046e-11</code></pre>
+## W = 0.99313, p-value = 0.0001408</code></pre>
 <pre class="r"><code>spec &lt;- ugarchspec(variance.model = list(model = &#39;iGARCH&#39;,
                                          garchOrder = c(1, 1),
                                          submodel = NULL,
@@ -761,7 +761,7 @@ Box.test(res, type = &#39;Ljung-Box&#39;,
 ##  Box-Ljung test
 ## 
 ## data:  res
-## X-squared = 12.871, df = 9, p-value = 0.1685</code></pre>
+## X-squared = 8.6859, df = 9, p-value = 0.4668</code></pre>
 <pre class="r"><code>Weighted.LM.test(res, rep(1, length(res)),
                  type = &#39;correlation&#39;,
                  lag = trunc((length(train_data) - 1)^(1 / 3)),
@@ -771,8 +771,8 @@ Box.test(res, type = &#39;Ljung-Box&#39;,
 ##  Li-Mak test on autocorrelations (Chi-Squared Approximation)
 ## 
 ## data:  res
-## X-squared on Squared Residuals for fitted ARCH process = 4.8709,
-## Degrees of Freedom = 7, p-value = 0.6757</code></pre>
+## X-squared on Squared Residuals for fitted ARCH process = 11.505,
+## Degrees of Freedom = 7, p-value = 0.1181</code></pre>
 <pre class="r"><code>result_frame &lt;- data.frame(matrix(ncol = 9, nrow = 0))
 colnames(result_frame) &lt;- c(&#39;dist&#39;, &#39;sample&#39;, &#39;model&#39;,
                             &#39;prop_fails_hist&#39;,&#39;prop_fails_cond&#39;,
@@ -830,7 +830,7 @@ for (dist in c(&#39;norm&#39;, &#39;sstd&#39;)) {
     }
   }
 }</code></pre>
-<pre class="r"><code>write.csv(result_frame, &#39;results/cdr.csv&#39;)</code></pre>
+<pre class="r"><code>write.csv(result_frame, &#39;results/kgh.csv&#39;)</code></pre>
 
 
 

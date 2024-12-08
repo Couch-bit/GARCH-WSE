@@ -11,9 +11,9 @@
 
 <meta name="author" content="Cezary Moskal" />
 
-<meta name="date" content="2024-12-01" />
+<meta name="date" content="2024-12-08" />
 
-<title>Symulacja GARCH(1, 1)</title>
+<title>Modele GARCH PGE</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -439,9 +439,9 @@ display: none;
 
 
 
-<h1 class="title toc-ignore">Symulacja GARCH(1, 1)</h1>
+<h1 class="title toc-ignore">Modele GARCH PGE</h1>
 <h4 class="author">Cezary Moskal</h4>
-<h4 class="date">2024-12-01</h4>
+<h4 class="date">2024-12-08</h4>
 
 </div>
 
@@ -783,7 +783,6 @@ colnames(result_frame) &lt;- c(&#39;dist&#39;, &#39;sample&#39;, &#39;model&#39;
 for (dist in c(&#39;norm&#39;, &#39;sstd&#39;)) {
   for (sample in c(500, 750, 1000)) {
     for (model in c(&#39;sGARCH&#39;, &#39;eGARCH&#39;, &#39;gjrGARCH&#39;, &#39;iGARCH&#39;)) {
-      cstd &lt;- numeric(10)
       if (model %in% c(&#39;sGARCH&#39;, &#39;iGARCH&#39;)) {
         GarchOrder &lt;- c(1, 1)
       } else {
