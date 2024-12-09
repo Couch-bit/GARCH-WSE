@@ -1,0 +1,264 @@
+---
+title: "Przedstawienie Wyników"
+author: "Cezary Moskal"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    code_folding: "hide"
+    css: "style.css"
+---
+
+```{r Setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(warning = FALSE)
+library(tidyverse)
+```
+
+
+```{r}
+data <- read.csv('results/kgh.csv')
+```
+
+```{r}
+data %>%
+  filter(sample == 1000) %>%
+  ggplot() +
+  geom_col(aes(x = model, y = prop_fails_cond, fill = dist),
+           color = 'gray',
+           position = 'dodge') +
+  ggtitle(label = 'Odsetek przekroczeń dla KGH', 
+          subtitle = 'Wyznaczanie VaR z rozkładu warunkowego') +
+  geom_hline(aes(yintercept = 0.05),
+             linetype = 'dashed',
+             linewidth = 1,
+             color = 'gray') +
+  geom_hline(aes(yintercept = 0.062),
+             linetype = 'dashed',
+             linewidth = 1,
+             color = 'red') +
+  geom_hline(aes(yintercept = 0.039),
+             linetype = 'dashed',
+             linewidth = 1,
+             color = 'red') +
+  xlab('Model') +
+  ylab('% przekroczeń') +
+  scale_x_discrete(labels = c('EGARCH', 'GJR-GARCH', 'IGARCH', 'sGARCH')) +
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 0.08),
+                     breaks = seq(0, 0.1, 0.005),
+                     labels = scales::percent) +
+  guides(fill = guide_legend('Rozkład')) +
+  scale_fill_manual(values = c('#446698', '#F2AD3F'),
+                    labels = c('normalny', 'skośny t-Studenta')) +
+  theme_bw()
+```
+
+```{r}
+data %>%
+  filter(sample == 1000) %>%
+  ggplot() +
+  geom_col(aes(x = model, y = tbfi_cond, fill = dist),
+           color = 'gray',
+           position = 'dodge') +
+  ggtitle(label = 'Niezależność przekroczeń dla KGH', 
+          subtitle = 'Wyznaczanie VaR z rozkładu warunkowego') +
+  geom_hline(aes(yintercept = 0.1),
+             linetype = 'dashed',
+             linewidth = 1,
+             color = 'red') +
+  xlab('Model') +
+  ylab('p-value') +
+  scale_x_discrete(labels = c('EGARCH', 'GJR-GARCH', 'IGARCH', 'sGARCH')) +
+  scale_y_continuous(expand = expansion(mult = c(0, 0), 
+                                        add = c(0, 0.1)),
+                     breaks = seq(0, 1, 0.05)) +
+  guides(fill = guide_legend('Rozkład')) +
+  scale_fill_manual(values = c('#446698', '#F2AD3F'),
+                    labels = c('normalny', 'skośny t-Studenta')) +
+  theme_bw()
+```
+
+```{r}
+data %>%
+  filter(sample == 1000) %>%
+  ggplot() +
+  geom_col(aes(x = model, y = prop_fails_hist, fill = dist),
+           color = 'gray',
+           position = 'dodge') +
+  ggtitle(label = 'Odsetek przekroczeń dla KGH', 
+          subtitle = 'Wyznaczanie VaR metodą historyczną') +
+  geom_hline(aes(yintercept = 0.05),
+             linetype = 'dashed',
+             linewidth = 1,
+             color = 'gray') +
+  geom_hline(aes(yintercept = 0.062),
+             linetype = 'dashed',
+             linewidth = 1,
+             color = 'red') +
+  geom_hline(aes(yintercept = 0.039),
+             linetype = 'dashed',
+             linewidth = 1,
+             color = 'red') +
+  xlab('Model') +
+  ylab('% przekroczeń') +
+  scale_x_discrete(labels = c('EGARCH', 'GJR-GARCH', 'IGARCH', 'sGARCH')) +
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 0.08),
+                     breaks = seq(0, 0.1, 0.005),
+                     labels = scales::percent) +
+  guides(fill = guide_legend('Rozkład')) +
+  scale_fill_manual(values = c('#446698', '#F2AD3F'),
+                    labels = c('normalny', 'skośny t-Studenta')) +
+  theme_bw()
+```
+
+```{r}
+data %>%
+  filter(sample == 1000) %>%
+  ggplot() +
+  geom_col(aes(x = model, y = tbfi_hist, fill = dist),
+           color = 'gray',
+           position = 'dodge') +
+  ggtitle(label = 'Niezależność przekroczeń dla KGH', 
+          subtitle = 'Wyznaczanie VaR metodą historyczną') +
+  geom_hline(aes(yintercept = 0.1),
+             linetype = 'dashed',
+             linewidth = 1,
+             color = 'red') +
+  xlab('Model') +
+  ylab('p-value') +
+  scale_x_discrete(labels = c('EGARCH', 'GJR-GARCH', 'IGARCH', 'sGARCH')) +
+  scale_y_continuous(expand = expansion(mult = c(0, 0), 
+                                        add = c(0, 0.05)),
+                     breaks = seq(0, 1, 0.1)) +
+  guides(fill = guide_legend('Rozkład')) +
+  scale_fill_manual(values = c('#446698', '#F2AD3F'),
+                    labels = c('normalny', 'skośny t-Studenta')) +
+  theme_bw()
+```
+
+```{r}
+data <- read.csv('results/cdr.csv') 
+```
+
+
+```{r}
+data %>%
+  filter(dist == 'sstd') %>%
+  ggplot() +
+  geom_col(aes(x = model, y = prop_fails_hist, fill = as.factor(sample)),
+           color = 'gray',
+           position = 'dodge') +
+  ggtitle(label = 'Odsetek przekroczeń dla CDR', 
+          subtitle = 'Wyznaczanie VaR metodą historyczną') +
+  geom_hline(aes(yintercept = 0.05),
+             linetype = 'dashed',
+             linewidth = 1,
+             color = 'gray') +
+  geom_hline(aes(yintercept = 0.062),
+             linetype = 'dashed',
+             linewidth = 1,
+             color = 'red') +
+  geom_hline(aes(yintercept = 0.039),
+             linetype = 'dashed',
+             linewidth = 1,
+             color = 'red') +
+  xlab('Model') +
+  ylab('% przekroczeń') +
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 0.08),
+                     breaks = seq(0, 0.1, 0.005),
+                     labels = scales::percent) +
+  guides(fill = guide_legend('Wielkość próby')) +
+  scale_fill_manual(values = c('#c1e7ff', '#4b7898', '#004c6d')) +
+  theme_bw()
+```
+
+```{r}
+data %>%
+  filter(dist == 'sstd') %>%
+  ggplot() +
+  geom_col(aes(x = model, y = tbfi_hist, fill = as.factor(sample)),
+           color = 'gray',
+           position = 'dodge') +
+  ggtitle(label = 'Niezależność przekroczeń dla CDR', 
+          subtitle = 'Wyznaczanie VaR metodą historyczną') +
+  geom_hline(aes(yintercept = 0.1),
+             linetype = 'dashed',
+             linewidth = 1,
+             color = 'red') +
+  xlab('Model') +
+  ylab('p-value') +
+  scale_y_continuous(expand = expansion(mult = c(0, 0), 
+                                        add = c(0, 0.05)),
+                     breaks = seq(0, 1, 0.05)) +
+  guides(fill = guide_legend('Wielkość próby')) +
+  scale_fill_manual(values = c('#c1e7ff', '#4b7898', '#004c6d')) +
+  theme_bw()
+```
+
+```{r}
+data1 <- read.csv('results/cdr.csv')
+data1['stock'] <- 'CD Projekt Red'
+data2 <- read.csv('results/pge.csv')
+data2['stock'] <- 'PGE'
+data3 <- read.csv('results/kgh.csv')
+data3['stock'] <- 'KGHM Polska Miedź'
+data4 <- read.csv('results/alr.csv')
+data4['stock'] <- 'Alior Bank'
+
+data <- rbind(data1, data2, data3, data4)
+```
+
+```{r}
+data %>%
+  filter(sample == 500, dist == 'sstd') %>%
+  ggplot() +
+  geom_col(aes(x = stock, y = prop_fails_hist, fill = model),
+           color = 'gray',
+           position = 'dodge') +
+  ggtitle(label = 'Odsetek przekroczeń dla wybranych spółek', 
+          subtitle = 'Porównanie modeli') +
+  geom_hline(aes(yintercept = 0.05),
+             linetype = 'dashed',
+             linewidth = 1,
+             color = 'gray') +
+  geom_hline(aes(yintercept = 0.062),
+             linetype = 'dashed',
+             linewidth = 1,
+             color = 'red') +
+  geom_hline(aes(yintercept = 0.039),
+             linetype = 'dashed',
+             linewidth = 1,
+             color = 'red') +
+  xlab('Akcja') +
+  ylab('% przekroczeń') +
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 0.08),
+                     breaks = seq(0, 0.1, 0.005),
+                     labels = scales::percent) +
+  guides(fill = guide_legend('Model')) +
+  scale_fill_manual(values = c('#446698', '#ac69a7', '#f5757a', '#F2AD3F'),
+                    labels = c('EGARCH', 'GJR-GARCH', 'IGARCH', 'sGARCH')) +
+  theme_bw()
+```
+
+```{r}
+data %>%
+  filter(sample == 500, dist == 'sstd') %>%
+  ggplot() +
+  geom_col(aes(x = stock, y = tbfi_hist, fill = model),
+           color = 'gray',
+           position = 'dodge') +
+  ggtitle(label = 'Niezależność przekroczeń dla wybranych spółek', 
+          subtitle = 'Porównanie modeli') +
+  geom_hline(aes(yintercept = 0.1),
+             linetype = 'dashed',
+             linewidth = 1,
+             color = 'red') +
+  xlab('Akcja') +
+  ylab('% przekroczeń') +
+  scale_y_continuous(expand = expansion(mult = c(0, 0), 
+                                        add = c(0, 0.05)),
+                     breaks = seq(0, 1, 0.05)) +
+  guides(fill = guide_legend('Model')) +
+  scale_fill_manual(values = c('#446698', '#ac69a7', '#f5757a', '#F2AD3F'),
+                    labels = c('EGARCH', 'GJR-GARCH', 'IGARCH', 'sGARCH')) +
+  theme_bw()
+```
