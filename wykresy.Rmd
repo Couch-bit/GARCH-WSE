@@ -68,9 +68,9 @@ data %>%
   xlab('Model') +
   ylab('p-value') +
   scale_x_discrete(labels = c('EGARCH', 'GJR-GARCH', 'IGARCH', 'sGARCH')) +
-  scale_y_continuous(expand = expansion(mult = c(0, 0), 
-                                        add = c(0, 0.1)),
-                     breaks = seq(0, 1, 0.05)) +
+  scale_y_continuous(expand = c(0, 0),
+                     limits = c(0, 1),
+                     breaks = seq(0, 1, 0.1)) +
   guides(fill = guide_legend('Rozkład')) +
   scale_fill_manual(values = c('#446698', '#F2AD3F'),
                     labels = c('normalny', 'skośny t-Studenta')) +
@@ -126,8 +126,8 @@ data %>%
   xlab('Model') +
   ylab('p-value') +
   scale_x_discrete(labels = c('EGARCH', 'GJR-GARCH', 'IGARCH', 'sGARCH')) +
-  scale_y_continuous(expand = expansion(mult = c(0, 0), 
-                                        add = c(0, 0.05)),
+  scale_y_continuous(expand = c(0, 0),
+                     limits = c(0, 1),
                      breaks = seq(0, 1, 0.1)) +
   guides(fill = guide_legend('Rozkład')) +
   scale_fill_manual(values = c('#446698', '#F2AD3F'),
